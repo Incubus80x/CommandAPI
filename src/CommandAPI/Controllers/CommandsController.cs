@@ -4,6 +4,7 @@ using CommandAPI.Data;
 using CommandAPI.Models;
 using AutoMapper;
 using CommandAPI.Dtos;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace CommandAPI.Controllers
 {
@@ -50,6 +51,61 @@ namespace CommandAPI.Controllers
             var commandReadDto = __mapper.Map<CommandReadDto>(commandModel);
 
             return CreatedAtRoute(nameof(GetCommandById), new { Id = commandReadDto.Id}, commandReadDto);
+        }
+
+        [HttpPut("{id}")]
+        public ActionResult UpdateCommand(int id, CommandUpdateDto commandUpdateDto)
+        {
+            var commandModelFromRepo = __repository.GetCommandById(id);
+            if (commandModelFromRepo == null)
+            {
+                return NotFound();
+            }
+            __mapper.Map(commandUpdateDto, commandModelFromRepo);
+            __repository.UpdateCommand(commandModelFromRepo);
+            __repository.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{id}")]
+        public ActionResult PartialCommandUpdate(int id, JsonPatchDocument<CommandUpdateDto> patchDoc)
+        {
+            var commandModelFromRepo = __repository.GetCommandById(id);
+            if (commandModelFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            var commandToPatch = __mapper.Map<CommandUpdateDto>(commandModelFromRepo);
+            patchDoc.ApplyTo(commandToPatch, ModelState);
+
+            if (!TryValidateModel(commandToPatch))
+            {
+                return ValidationProblem(ModelState);
+            }
+
+            __mapper.Map(commandToPatch, commandModelFromRepo);
+
+            __repository.UpdateCommand(commandModelFromRepo);
+            __repository.SaveChanges();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public ActionResult DeleteCommand(int id)
+        {
+            var commandModelFromRepo = __repository.GetCommandById(id);
+            if (commandModelFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            __repository.DeleteCommand(commandModelFromRepo);
+            __repository.SaveChanges();
+
+            return NoContent();
         }
     }
 }
