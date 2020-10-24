@@ -7,6 +7,7 @@ using AutoMapper;
 using CommandAPI.Data;
 using CommandAPI.Models;
 using System.Collections.Generic;
+using CommandAPI.Profiles;
 
 namespace CommandAPI.Test
 {
@@ -20,7 +21,11 @@ namespace CommandAPI.Test
 
             mockRepo.Setup(repo => repo.GetAllCommands()).Returns(GetCommands(0));
 
-            var controller = new CommandsController(mockRepo.Object, /*AutoMapper*/);
+            var realProfile = new CommandProfile();
+            var configuration = new MapperConfiguration(cfg => cfg.AddProfile(realProfile));
+            IMapper mapper = new Mapper(configuration);
+
+            var controller = new CommandsController(mockRepo.Object, mapper);
         }
 
         private List<Command> GetCommands(int num)
