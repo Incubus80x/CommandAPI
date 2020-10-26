@@ -289,7 +289,7 @@ namespace CommandAPI.Test
             var result = controller.DeleteCommand(0);
 
             //  Assert
-            Assert.IsType<NotFoundResult>(result);
+            Assert.IsType<OkResult>(result);
         }
 #endregion
 
